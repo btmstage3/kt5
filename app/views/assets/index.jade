@@ -1,0 +1,58 @@
+extends ../layout_dashboard
+
+block content
+  h1 Assets
+  a.btn.btn-primary(href="/assets/add") Add New Asset
+
+  table#assetTable.table.table-striped.dataTable
+    thead
+      tr
+        th Serial #
+        th Unique no #
+        th Make
+        th Model
+        th Category
+        th Purchase Date
+        th Cost
+        th Status
+        th Branch
+        th Actions
+    tbody
+      if assets.length
+        each asset in assets
+          tr
+            td= asset.serial_number || '-'
+            td= asset.item_number || '-'
+            td= asset.make || '-'
+            td= asset.model || '-'
+            td= asset.category_name || '-'
+            td= asset.purchase_date ? new Date(asset.purchase_date).toDateString() : '-'
+            td= asset.cost || '-'
+            td
+              if asset.status === 'active'
+                span.badge.bg-success= asset.status
+              else if asset.status === 'inactive'
+                span.badge.bg-danger= asset.status
+              else if asset.status === 'scrapped'
+                span.badge.bg-secondary= asset.status
+              else
+                span= asset.status || '-'
+            td= asset.branch || '-'
+            td
+              a.btn.btn-sm.btn-warning(href=`/assets/edit/${asset._asset_id_pk}`) Edit
+      else
+        tr
+          // Render 10 empty <td> to match header count
+          each _ in [1,2,3,4,5,6,7,8,9,10]
+            td
+
+block scripts
+  script(src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js")
+  script.
+    $(document).ready(function () {
+      $('#assetTable').DataTable({
+        language: {
+          emptyTable: "No assets found"
+        }
+      });
+    });

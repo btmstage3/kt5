@@ -1,0 +1,33 @@
+extends ../layout
+extends ../layout_dashboard
+
+block content
+  h1 Employees
+  a.btn.btn-primary(href="/employees/add") Add New Employee
+  
+
+  table#employeeTable.table.table-striped.dataTable
+    thead
+      tr
+        th Employee Code
+        th Full Name
+        th Email Address
+        th Phone Number
+        th Department
+        th Job Title
+        th Status
+        th Branch Location
+        th Actions
+    tbody
+      each emp in employees
+        tr
+          td= emp.emp_code
+          td= emp.name
+          td= emp.email
+          td= emp.phone
+          td= emp.department
+          td= emp.designation
+          td= emp.status
+          td= emp.branch
+          td
+            a.btn.btn-sm.btn-warning(href=`/employees/edit/${emp._employee_id_pk}`) Edit

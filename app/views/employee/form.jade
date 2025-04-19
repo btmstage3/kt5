@@ -1,0 +1,58 @@
+extends ../layout
+
+block content
+  h1= employee ? 'Edit Employee' : 'Add Employee'
+
+  if error
+    .alert.alert-danger= error
+
+  .container
+    .row
+      .col-md-6
+        form(method="post", action=isEdit ? `/employees/update/${employee._employee_id_pk}` : "/employees/create")
+          .row.mb-3
+            label.col-md-4.col-form-label(for="emp_code") Employee Code
+            .col-md-8
+              input.form-control(type="text", name="emp_code", required, value=employee ? employee.emp_code : "")
+
+          .row.mb-3
+            label.col-md-4.col-form-label(for="name") Full Name
+            .col-md-8
+              input.form-control(type="text", name="name", required, value=employee ? employee.name : "")
+
+          .row.mb-3
+            label.col-md-4.col-form-label(for="email") Email Address
+            .col-md-8
+              input.form-control(type="email", name="email", value=employee ? employee.email : "")
+
+          .row.mb-3
+            label.col-md-4.col-form-label(for="phone") Phone Number
+            .col-md-8
+              input.form-control(type="text", name="phone", value=employee ? employee.phone : "")
+
+          .row.mb-3
+            label.col-md-4.col-form-label(for="department") Department
+            .col-md-8
+              input.form-control(type="text", name="department", value=employee ? employee.department : "")
+
+          .row.mb-3
+            label.col-md-4.col-form-label(for="designation") Job Title
+            .col-md-8
+              input.form-control(type="text", name="designation", value=employee ? employee.designation : "")
+
+          .row.mb-3
+            label.col-md-4.col-form-label(for="status") Status
+            .col-md-8
+              select.form-select(name="status")
+                option(value="active", selected=employee && employee.status === 'active') Active
+                option(value="inactive", selected=employee && employee.status === 'inactive') Inactive
+
+          .row.mb-3
+            label.col-md-4.col-form-label(for="branch") Branch Location
+            .col-md-8
+              input.form-control(type="text", name="branch", value=employee ? employee.branch : "")
+
+          .row.mb-3
+            .col-md-4
+            .col-md-8
+              button.btn.btn-primary(type="submit") Submit

@@ -1,0 +1,54 @@
+extends ../layout
+extends ../layout_dashboard
+
+block content
+  h1 Stock View (Assets Available)
+
+  if error
+    .alert.alert-danger= error
+
+  .row.mb-4
+    .col-md-3
+      .card.text-bg-primary
+        .card-body
+          h5.card-title Total Branches
+          p.card-text= totalBranches
+    .col-md-3
+      .card.text-bg-success
+        .card-body
+          h5.card-title In Stock
+          p.card-text= globalStatusCount.in_stock
+    .col-md-3
+      .card.text-bg-warning
+        .card-body
+          h5.card-title Issued
+          p.card-text= globalStatusCount.issued
+    .col-md-3
+      .card.text-bg-danger
+        .card-body
+          h5.card-title Scrapped
+          p.card-text= globalStatusCount.scrapped
+
+  
+  table#stockTable.table.table-bordered.dataTable
+    thead
+      tr
+        th Branch
+        th In Stock
+        th Issued
+        th Scrapped
+        th In-Stock Total Value
+    tbody
+      each item in stockArray
+        tr
+          td= item.branch
+          td= item.in_stock
+          td= item.issued
+          td= item.scrapped
+          td ₹ #{item.value.toFixed(2)}
+    tfoot
+      tr
+        td(colspan="4").text-end 
+        strong Grand Total:
+        td 
+        strong ₹ #{totalValue.toFixed(2)}

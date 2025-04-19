@@ -1,0 +1,20 @@
+extends ../layout_dashboard
+
+block content
+  h1 Asset Categories
+  a.btn.btn-primary(href="/categories/add") Add New Category
+
+  
+  table.table.table-striped.dataTable
+    thead
+      tr
+        th ID
+        th Name
+        th Actions
+    tbody
+      each category in categories
+        tr
+          td= category._category_id_pk
+          td= category.name
+          td
+            a.btn.btn-sm.btn-warning(href=`/categories/edit/${category._category_id_pk}`) Edit

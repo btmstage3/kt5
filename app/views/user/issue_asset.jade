@@ -1,0 +1,195 @@
+extends ../layout_dashboard
+
+block content
+  .row
+
+    .col-md-6
+      h2 Issue Asset
+
+
+      form(method="POST", action="/issue/issue-asset", onsubmit="return validateForm()")
+        .row
+
+          .col-md-12
+            .form-group
+              label(for='employeeSearch') Search for an Employee
+              input#employeeSearch.form-control(type='text', placeholder='Search for an employee...', onkeyup='searchEmployee()')
+
+
+            ul#employeeList.list-group.mt-2(style='display: none;')
+
+
+          .col-md-12
+            .form-group
+              label(for='selectedEmployee') Selected Employee
+              input#selectedEmployee.form-control(type='text', readonly)
+
+
+          .col-md-12.mt-4
+            .form-group
+              label(for='assetSearch') Search for an Asset
+              input#assetSearch.form-control(type='text', placeholder='Search for an asset...', onkeyup='searchAsset()')
+
+
+            ul#assetList.list-group.mt-2(style='display: none;')
+
+
+          .col-md-12
+            .form-group
+              label(for='selectedAsset') Selected Asset
+              input#selectedAsset.form-control(type='text', readonly)
+
+          .col-md-12
+            .form-group
+              input(type="hidden", id="asset_id", name="asset_id")
+              input(type="hidden", id="employee_id", name="employee_id")
+
+
+          .row.mt-4
+            .col-md-12
+              button.btn.btn-primary(type="submit") Issue Asset
+
+
+    .col-md-6
+
+      .col-md-12.mt-4(style='display:none;' id='employeeDetails')
+        .card
+          .card-body
+            h5 Employee Details:
+            p Name: <span id="employeeName"></span>
+            p Employee Code: <span id="employeeCode"></span>
+            p Phone: <span id="employeePhone"></span>
+
+
+      .col-md-12.mt-4(style='display:none;' id='assetDetails')
+        .card
+          .card-body
+            h5 Asset Details:
+            p Serial Number: <span id="assetSerialNumber"></span>
+            p Make: <span id="assetMake"></span>
+            p Model: <span id="assetModel"></span>
+            p Item Number: <span id="assetItemNumber"></span>
+            p Purchase Date: <span id="assetPurchaseDate"></span>
+            p Status: <span id="assetStatus"></span>
+
+
+  style.
+    #employeeList,
+    #assetList {
+      max-height: 200px;
+      overflow-y: auto;
+      position: absolute;
+      z-index: 1000;
+      width: 100%;
+    }
+
+  // Scripts
+  script(src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js")
+
+  script.
+    function searchEmployee() {
+      let input = document.getElementById('employeeSearch').value.toLowerCase();
+      let employeeList = document.getElementById('employeeList');
+      employeeList.innerHTML = '';
+
+      if (input.length === 0) {
+        employeeList.style.display = 'none';
+        return;
+      }
+
+      fetch(`/issue/get-employees?search=${input}`)
+        .then(response => response.json())
+        .then(employees => {
+          if (employees.length > 0) {
+            employeeList.style.display = 'block';
+            employees.forEach(emp => {
+              let listItem = document.createElement('li');
+              listItem.classList.add('list-group-item', 'border', 'rounded', 'p-2');
+              listItem.textContent = emp.name;
+              listItem.onclick = () => selectEmployee(emp);
+              employeeList.appendChild(listItem);
+            });
+          } else {
+            employeeList.style.display = 'none';
+          }
+        })
+        .catch(err => {
+          console.error('Error fetching employees:', err);
+          employeeList.style.display = 'none';
+        });
+    }
+
+    function selectEmployee(employee) {
+      document.getElementById('employeeSearch').value = employee.name;
+      document.getElementById('employeeList').style.display = 'none';
+      document.getElementById('selectedEmployee').value = employee.name;
+      document.getElementById('employee_id').value = employee._employee_id_pk;
+
+      document.getElementById('employeeDetails').style.display = 'block';
+      document.getElementById('employeeName').textContent = employee.name;
+      document.getElementById('employeeCode').textContent = employee.emp_code;
+      document.getElementById('employeePhone').textContent = employee.phone;
+    }
+
+    function searchAsset() {
+      let input = document.getElementById('assetSearch').value.toLowerCase();
+      let assetList = document.getElementById('assetList');
+      assetList.innerHTML = '';
+
+      if (input.length === 0) {
+        assetList.style.display = 'none';
+        return;
+      }
+
+      fetch(`/issue/get-assets?search=${input}`)
+        .then(response => response.json())
+        .then(assets => {
+          if (assets.length > 0) {
+            assetList.style.display = 'block';
+            assets.forEach(asset => {
+              let listItem = document.createElement('li');
+              listItem.classList.add('list-group-item', 'border', 'rounded', 'p-2');
+              listItem.textContent = `${asset.item_number} - ${asset.make} ${asset.model}`;
+              listItem.onclick = () => selectAsset(asset);
+              assetList.appendChild(listItem);
+            });
+          } else {
+            assetList.style.display = 'none';
+          }
+        })
+        .catch(err => {
+          console.error('Error fetching assets:', err);
+          assetList.style.display = 'none';
+        });
+    }
+
+    function selectAsset(asset) {
+      const displayText = `${asset.item_number} - ${asset.make} ${asset.model}`;
+      document.getElementById('assetSearch').value = displayText;
+      document.getElementById('selectedAsset').value = displayText;
+      document.getElementById('assetList').style.display = 'none';
+      document.getElementById('asset_id').value = asset._asset_id_pk;
+
+      document.getElementById('assetDetails').style.display = 'block';
+      document.getElementById('assetSerialNumber').textContent = asset.serial_number;
+      document.getElementById('assetMake').textContent = asset.make;
+      document.getElementById('assetModel').textContent = asset.model;
+      document.getElementById('assetItemNumber').textContent = asset.item_number;
+      document.getElementById('assetPurchaseDate').textContent = asset.purchase_date;
+      document.getElementById('assetStatus').textContent = asset.status;
+    }
+
+    function validateForm() {
+      const employeeId = document.getElementById('employee_id').value;
+      const assetId = document.getElementById('asset_id').value;
+
+      if (!employeeId || !assetId) {
+        alert('Please select both an employee and an asset before submitting.');
+        return false;
+      }
+
+      return true;
+    }
+
+
+  link(href='https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css', rel='stylesheet')

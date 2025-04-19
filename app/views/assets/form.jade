@@ -1,0 +1,58 @@
+extends ../layout
+
+block content
+  h1= asset ? 'Edit Asset' : 'Add Asset'
+
+  if error
+    .alert.alert-danger= error
+
+  .container
+    .row
+      .col-md-6
+        form(method="post", action=asset ? `/assets/${asset._asset_id_pk}?_method=PUT` : '/assets/add')
+          
+          .row.mb-3
+            label.col-md-4.col-form-label(for='serial_number') Serial Number
+            .col-md-8
+              input.form-control(type='text', name='serial_number', required, value=asset ? asset.serial_number : '')
+
+          .row.mb-3
+            label.col-md-4.col-form-label(for='make') Make
+            .col-md-8
+              input.form-control(type='text', name='make', value=asset ? asset.make : '')
+
+          .row.mb-3
+            label.col-md-4.col-form-label(for='model') Model
+            .col-md-8
+              input.form-control(type='text', name='model', value=asset ? asset.model : '')
+
+          .row.mb-3
+            label.col-md-4.col-form-label(for='__category_id_fk') Category
+            .col-md-8
+              select.form-control(name='__category_id_fk')
+                option(value='') -- Select Category --
+                each category in categories
+                  option(
+                    value=category._category_id_pk,
+                    selected=(asset && asset.__category_id_fk === category._category_id_pk) ? true : false
+                  )= category.name
+
+          .row.mb-3
+            label.col-md-4.col-form-label(for='purchase_date') Purchase Date
+            .col-md-8
+              input.form-control(type='date', name='purchase_date', value=asset ? asset.purchase_date : '', max=today)
+
+          .row.mb-3
+            label.col-md-4.col-form-label(for='cost') Cost
+            .col-md-8
+              input.form-control(type='number', step='0.01', name='cost', value=asset ? asset.cost : '')
+
+          .row.mb-3
+            label.col-md-4.col-form-label(for='branch') Branch
+            .col-md-8
+              input.form-control(type='text', name='branch', value=asset ? asset.branch : '')
+
+          .row.mb-3
+            .col-md-4
+            .col-md-8
+              button.btn.btn-success(type='submit') Submit

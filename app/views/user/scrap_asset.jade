@@ -1,0 +1,102 @@
+extends ../layout_dashboard
+
+block content
+  .row
+    .col-md-6
+      h2 Scrap Asset
+
+      form(method="POST", action="/return/scrap-asset")
+        .form-group
+          label(for='assetSearch') Search for an Asset
+          input#assetSearch.form-control(type='text', placeholder='Search for an asset...', onkeyup='searchAsset()')
+
+        ul#assetList.list-group.mt-2(style='display: none;')
+
+        .form-group
+          label(for='selectedAsset') Selected Asset
+          input#selectedAsset.form-control(type='text', readonly)
+
+        input(type="hidden", id="asset_id", name="asset_id")
+        input(type="hidden", id="employee_id", name="employee_id")
+
+        .form-group.mt-3
+          label(for='returnReason') Reason for Scrap
+          textarea#returnReason.form-control(name='reason', rows='3', required, placeholder='Enter reason for scrap...')
+
+        .form-group.mt-4
+          button.btn.btn-danger(type="submit") Scrap Asset
+
+    .col-md-6
+      .col-md-12.mt-4(style='display:none;' id='assetDetails')
+        .card
+          .card-body
+            h5 Asset Details:
+            p Serial Number: <span id="assetSerialNumber"></span>
+            p Make: <span id="assetMake"></span>
+            p Model: <span id="assetModel"></span>
+            p Item Number: <span id="assetItemNumber"></span>
+            p Purchase Date: <span id="assetPurchaseDate"></span>
+            p Status: <span id="assetStatus"></span>
+
+  style.
+    #assetList {
+      max-height: 200px;
+      overflow-y: auto;
+      position: absolute;
+      z-index: 1000;
+      width: 100%;
+    }
+
+  script(src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js")
+
+  script.
+    function searchAsset() {
+      let input = document.getElementById('assetSearch').value.toLowerCase();
+      let assetList = document.getElementById('assetList');
+      assetList.innerHTML = '';
+
+      if (input.length === 0) {
+        assetList.style.display = 'none';
+        return;
+      }
+
+      fetch(`/return/get-assets-scrap?search=${input}`)
+        .then(response => response.json())
+        .then(assets => {
+          if (assets.length > 0) {
+            assetList.style.display = 'block';
+            assets.forEach(asset => {
+              let listItem = document.createElement('li');
+              listItem.classList.add('list-group-item', 'border', 'rounded', 'p-2');
+              listItem.textContent = `${asset.item_number} - ${asset.make} ${asset.model}`;
+              listItem.onclick = () => selectAsset(asset);
+              assetList.appendChild(listItem);
+            });
+          } else {
+            assetList.style.display = 'none';
+          }
+        })
+        .catch(err => {
+          console.error('Error fetching assets:', err);
+          assetList.style.display = 'none';
+        });
+    }
+
+    function selectAsset(asset) {
+      const displayText = `${asset.item_number} - ${asset.make} ${asset.model}`;
+      document.getElementById('assetSearch').value = displayText;
+      document.getElementById('selectedAsset').value = displayText;
+      document.getElementById('assetList').style.display = 'none';
+      document.getElementById('asset_id').value = asset._asset_id_pk;
+      document.getElementById('employee_id').value = asset.__employee_id_fk || '';
+
+      document.getElementById('assetDetails').style.display = 'block';
+      document.getElementById('assetSerialNumber').textContent = asset.serial_number;
+      document.getElementById('assetMake').textContent = asset.make;
+      document.getElementById('assetModel').textContent = asset.model;
+      document.getElementById('assetItemNumber').textContent = asset.item_number;
+      document.getElementById('assetPurchaseDate').textContent = asset.purchase_date;
+      document.getElementById('assetStatus').textContent = asset.status;
+    }
+
+  link(href='https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css', rel='stylesheet')

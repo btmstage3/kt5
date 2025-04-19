@@ -1,0 +1,135 @@
+extends ../layout_dashboard
+
+block content
+  .row
+    .col-md-6
+      h2 Asset History
+
+      form(method="POST", action="/return/history-asset", onsubmit="return false")
+        .form-group
+          label(for='assetSearch') Search for an Asset
+          input#assetSearch.form-control(type='text', placeholder='Search for an asset...', onkeyup='searchAsset()')
+
+        ul#assetList.list-group.mt-2(style='display: none;')
+
+        .form-group
+          label(for='selectedAsset') Selected Asset
+          input#selectedAsset.form-control(type='text', readonly)
+
+        input(type="hidden", id="asset_id", name="asset_id")
+
+        .form-group.mt-3
+          button.btn.btn-primary(type="button", onclick='loadHistory()') View History
+          button.btn.btn-secondary.ml-2(type="button", onclick='resetForm()') Reset
+
+    .col-md-6
+      .col-md-12.mt-4#assetDetails(style='display:none; overflow-y:auto; max-height:500px;')
+        .card
+          .card-body
+            h5 Asset History Timeline
+            ul.timeline.list-unstyled#timelineList
+
+  style.
+    #assetList {
+      max-height: 200px;
+      overflow-y: auto;
+      position: absolute;
+      z-index: 1000;
+      width: 100%;
+    }
+    .timeline-item {
+      border-left: 3px solid #007bff;
+      padding-left: 15px;
+      margin-bottom: 15px;
+    }
+    .timeline-item::before {
+      content: "•";
+      color: #007bff;
+      font-size: 20px;
+      margin-right: 10px;
+    }
+
+  script(src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js")
+
+  script.
+    function searchAsset() {
+      let input = document.getElementById('assetSearch').value.toLowerCase();
+      let assetList = document.getElementById('assetList');
+      assetList.innerHTML = '';
+
+      if (input.length === 0) {
+        resetForm();
+        return;
+      }
+
+      fetch(`/return/get-assets?search=${input}`)
+        .then(response => response.json())
+        .then(assets => {
+          if (assets.length > 0) {
+            assetList.style.display = 'block';
+            assets.forEach(asset => {
+              let listItem = document.createElement('li');
+              listItem.classList.add('list-group-item', 'border', 'rounded', 'p-2');
+              listItem.textContent = `${asset.item_number} - ${asset.make} ${asset.model}`;
+              listItem.onclick = () => selectAsset(asset);
+              assetList.appendChild(listItem);
+            });
+          } else {
+            assetList.style.display = 'none';
+          }
+        })
+        .catch(err => {
+          console.error('Error fetching assets:', err);
+          assetList.style.display = 'none';
+        });
+    }
+
+    function selectAsset(asset) {
+      const displayText = `${asset.item_number} - ${asset.make} ${asset.model}`;
+      document.getElementById('assetSearch').value = displayText;
+      document.getElementById('selectedAsset').value = displayText;
+      document.getElementById('asset_id').value = asset._asset_id_pk;
+      document.getElementById('assetList').style.display = 'none';
+    }
+
+    function resetForm() {
+      document.getElementById('assetSearch').value = '';
+      document.getElementById('selectedAsset').value = '';
+      document.getElementById('asset_id').value = '';
+      document.getElementById('timelineList').innerHTML = '';
+      document.getElementById('assetDetails').style.display = 'none';
+      searchAsset(); 
+    }
+
+    function loadHistory() {
+      const assetId = document.getElementById('asset_id').value;
+      if (!assetId) {
+        alert("Please select an asset first.");
+        return;
+      }
+
+      fetch(`/return/history-asset/${assetId}`)
+        .then(response => response.json())
+        .then(data => {
+          const timelineList = document.getElementById('timelineList');
+          timelineList.innerHTML = '';
+          document.getElementById('assetDetails').style.display = 'block';
+
+          if (data.length === 0) {
+            timelineList.innerHTML = '<li class="timeline-item">No history found.</li>';
+            return;
+          }
+
+          data.forEach(event => {
+            let item = document.createElement('li');
+            item.className = 'timeline-item';
+            item.innerHTML = `<strong>${event.event_type}</strong> - ${new Date(event.date).toLocaleDateString()}<br/>${event.details || ''}`;
+            timelineList.appendChild(item);
+          });
+        })
+        .catch(err => {
+          console.error('Error loading history:', err);
+        });
+    }
+
+  link(href='https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css', rel='stylesheet')

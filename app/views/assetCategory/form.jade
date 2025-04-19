@@ -1,0 +1,22 @@
+extends ../layout
+
+block content
+  h1= category ? 'Edit Category' : 'Add New Category'
+
+  if error
+    .alert.alert-danger= error
+
+  .container
+    .row
+      .col-md-6
+        form(method='post', action= category ? `/categories/edit/${category._category_id_pk}` : '/categories/add')
+          .row.mb-3
+            label.col-md-4.col-form-label(for='name') Category Name
+            .col-md-8
+              input.form-control(type='text', name='name', value=category ? category.name : '')
+
+          .row.mb-3
+            .col-md-4
+            .col-md-8
+              button.btn.btn-success(type='submit') Save
+              a.btn.btn-secondary.ms-2(href='/categories') Cancel
